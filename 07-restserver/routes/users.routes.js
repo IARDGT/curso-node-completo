@@ -3,7 +3,15 @@ const { Router } = require('express');
 const { check } = require('express-validator');
 
 
-const { validateFields } = require('../middlewares/validate-fields');
+//const { validateJWT } = require('../middlewares/validate-jwt');
+//const { validateFields } = require('../middlewares/validate-fields');
+//const { isAdminRole, hasRole } = require('../middlewares/validate-roles');
+
+const { validateJWT,
+        validateFields,
+        isAdminRole,
+        hasRole } = require('../middlewares');
+
 const { isRoleValid, isEmailValid, existsUserById } = require('../helpers/db-validators');
 const { usersGet,
         usersPut,
@@ -18,7 +26,7 @@ router.get('/', usersGet);
 router.put('/:id', [
     check('id', 'No es un ID válido').isMongoId(),
     check('id').custom( existsUserById ),
-    check('rol').custom( isRoleValid ),
+    check('role').custom( isRoleValid ),
     validateFields
 ], usersPut);
 
@@ -27,12 +35,15 @@ router.post('/', [
     check('password', 'La contraseña debe contener más de 6 letras').isLength({ min:6 }),
     //check('email', 'El correo no es valido').isEmail(),
     check('email').custom( isEmailValid ),
-    //check('rol', 'No es un rol válido').isIn(['ADMIN_ROLE', 'USER_ROLE']),
-    check('rol').custom( isRoleValid ),
+    //check('role', 'No es un role válido').isIn(['ADMIN_ROLE', 'USER_ROLE']),
+    check('role').custom( isRoleValid ),
     validateFields
 ] , usersPost);
 
 router.delete('/:id',[
+    validateJWT,
+    //isAdminRole,
+    hasRole('ADMIN_ROLE','VENTAS_ROLE'),
     check('id', 'No es un ID válido').isMongoId(),
     check('id').custom( existsUserById ),
     validateFields
